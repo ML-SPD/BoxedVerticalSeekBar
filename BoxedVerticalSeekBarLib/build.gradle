@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
+apply plugin: 'maven-publish' // 確保這行有在
 
 android {
     compileSdkVersion 26
@@ -9,11 +9,7 @@ android {
         targetSdkVersion 26
         versionCode 1
         versionName '1.1'
-
-
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
     buildTypes {
         release {
@@ -21,7 +17,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    productFlavors {
+    // 為了相容性，建議加上這段 Java 8 設定
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -34,25 +33,20 @@ dependencies {
     })
 }
 
-group = 'abak.tr.com.boxedverticalseekbar'
-version = '1.0'
+// --- 以下是關鍵修改區，請完全替換掉原本最下面的 task 部分 ---
 
-task generateSourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                // 這是告訴 Gradle 使用 release 變體的 AAR 檔案
+                from components.release
+
+                // 這些資訊會決定你在主專案引入時的路徑
+                groupId = 'com.github.ML-SPD'
+                artifactId = 'BoxedVerticalSeekBar'
+                version = '1.3.0' 
+            }
+        }
+    }
 }
-
-task generateJavadocs(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath()
-            .join(File.pathSeparator))
-}
-
-task generateJavadocsJar(type: Jar) {
-    from generateJavadocs.destinationDir
-    classifier 'javadoc'
-}
-
-generateJavadocsJar.dependsOn generateJavadocs
-
-
